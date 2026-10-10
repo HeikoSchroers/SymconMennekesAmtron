@@ -1,0 +1,12 @@
+{
+    "id": "{C63D1C0A-31EC-4325-96CC-3931B77AEF00}",
+    "name": "SymconMennekesAmtron",
+    "author": "Heiko Schrörs",
+    "url": "https://github.com/HeikoSchroers/SymconMennekesAmtron",
+    "compatibility": {
+        "version": "8.0"
+    },
+    "version": "1.0",
+    "build": 1,
+    "date": 0
+}

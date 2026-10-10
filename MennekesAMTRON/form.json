@@ -1,0 +1,36 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "caption": "Die Instanz hängt unter einem ModBus Gateway (Modbus TCP, Port 502, Geräte-ID 1). Adresse und Port stehen im Client Socket darüber."
+        },
+        {
+            "type": "Label",
+            "caption": "Die Wallbox nimmt nur EINE Modbus-Verbindung an. Jede neue wirft die vorige hinaus. Neben dieser Instanz darf kein anderer Leser laufen."
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "Interval",
+            "caption": "Abfrage alle",
+            "suffix": "Sekunden",
+            "minimum": 5
+        },
+        {
+            "type": "CheckBox",
+            "name": "AllowWrite",
+            "caption": "Schreibzugriff erlauben (HEMS-Stromgrenze)"
+        },
+        {
+            "type": "Label",
+            "caption": "Ohne Haken liest die Instanz nur. Der Haken schaltet die Bedienung der HEMS-Stromgrenze frei und die Funktion AMTRON_SetCurrentLimit."
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Jetzt lesen",
+            "onClick": "AMTRON_Update($id);"
+        }
+    ],
+    "status": []
+}

@@ -2,7 +2,41 @@
     "elements": [
         {
             "type": "Label",
-            "caption": "Die Instanz hängt unter einem ModBus Gateway (Modbus TCP, Port 502, Geräte-ID 1). Adresse und Port stehen im Client Socket darüber."
+            "caption": "Verbindung zum Ladecontroller (Modbus TCP, meist Port 502, Unit-ID 1). Gateway und Client Socket darüber stellt die Instanz selbst ein; dort nichts von Hand ändern."
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "ValidationTextBox",
+                    "name": "Host",
+                    "caption": "Adresse (IP oder Hostname)"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "Port",
+                    "caption": "Port",
+                    "minimum": 1,
+                    "maximum": 65535
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "DeviceID",
+                    "caption": "Unit-ID",
+                    "minimum": 1,
+                    "maximum": 247
+                }
+            ]
+        },
+        {
+            "type": "CheckBox",
+            "name": "Open",
+            "caption": "Verbindung aktiv"
+        },
+        {
+            "type": "Label",
+            "name": "LetzterAbruf",
+            "caption": "Letzter erfolgreicher Abruf: noch keiner"
         },
         {
             "type": "Label",
@@ -28,9 +62,19 @@
     "actions": [
         {
             "type": "Button",
-            "caption": "Jetzt lesen",
-            "onClick": "AMTRON_Update($id);"
+            "caption": "Verbindung testen",
+            "onClick": "AMTRON_TestConnection($id);"
+        },
+        {
+            "type": "Label",
+            "caption": "Liest einmal alle Werte und zeigt das Ergebnis. Geänderte Felder vorher mit „Änderungen übernehmen“ speichern."
         }
     ],
-    "status": []
+    "status": [
+        {
+            "code": 201,
+            "icon": "error",
+            "caption": "Keine Adresse eingetragen"
+        }
+    ]
 }

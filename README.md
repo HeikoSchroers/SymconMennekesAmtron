@@ -15,14 +15,33 @@ ECU). Es liest die Wallbox über das ModBus Gateway von IP-Symcon aus.
    `https://github.com/HeikoSchroers/SymconMennekesAmtron`
 2. Eine Instanz **Mennekes AMTRON** anlegen. Symcon legt dazu ein
    **ModBus Gateway** und einen **Client Socket** an.
-3. Im Gateway diese Werte einstellen:
-   - Modus: **Modbus TCP**
-   - Geräte-ID: **1**
-4. Im Client Socket die Adresse der Wallbox und Port **502** eintragen.
-5. In der Instanz das Abfrageintervall einstellen (Vorgabe 30 Sekunden).
+3. In der Instanz eintragen:
+   - Adresse der Wallbox
+   - Port **502** und Unit-ID **1** (Vorgabe)
+   - Abfrageintervall (Vorgabe 30 Sekunden)
+4. **Änderungen übernehmen**. Die Instanz stellt das Gateway auf Modbus TCP
+   und trägt Adresse und Port in den Client Socket ein.
 
-Das Modul selbst kennt keine Adresse und kein Passwort. Alles, was das Gerät
-betrifft, steht im Gateway und im Client Socket.
+Der Haken **Verbindung aktiv** öffnet bzw. schließt den Client Socket. Ohne
+Haken gibt die Instanz die einzige Modbus-Verbindung der Wallbox frei (s. u.).
+
+Gateway und Client Socket werden **nicht** von Hand eingestellt. Die Instanz
+trägt ihre Werte selbst ein, und zwar nur, wenn sie abweichen. Ohne
+Abweichung werden Gateway und Socket nicht neu angewendet; die Verbindung
+bleibt dann bestehen. Im Gateway sind die Felder gesperrt, die von der
+Instanz kommen. Den Socket sperrt Symcon nicht. Was dort von Hand geändert
+wird, überschreibt die Instanz beim nächsten Speichern.
+
+**Verbindung testen** (unten im Formular) prüft Gateway und Socket und liest
+einmal alle Werte. Darüber steht, wann zuletzt erfolgreich gelesen wurde.
+
+### Umstieg von Version 1.0
+
+Bis 1.0 standen Adresse und Port im Client Socket und die Geräte-ID im
+Gateway. Nach dem Update übernimmt jede bestehende Instanz diese Werte
+einmalig in ihre eigenen Felder. Instanzen werden dabei nicht neu angelegt,
+Variablen und Archiv bleiben. Gateway und Socket werden nur angewendet, wenn
+ein Wert abweicht.
 
 > **Wichtig: Die Wallbox nimmt nur EINE Modbus-TCP-Verbindung an.** Jede neue
 > Verbindung wirft die vorige hinaus. Neben dieser Instanz darf deshalb kein

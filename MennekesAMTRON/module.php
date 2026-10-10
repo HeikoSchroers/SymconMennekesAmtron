@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/VerbindungKette.php';
+
 /**
  * Mennekes AMTRON Professional (Ladecontroller ECU) ueber das ModBus Gateway
  * von IP-Symcon.
  *
- * Die Instanz haengt unter einem ModBus Gateway (Modbus TCP, Port 502,
- * Geraete-ID 1). Adresse und Port stehen im Client Socket - in diesem Modul
- * steht keine Adresse.
+ * Die Instanz haengt unter einem ModBus Gateway mit Client Socket. Adresse,
+ * Port und Unit-ID stehen in dieser Instanz; sie traegt sie selbst in Gateway
+ * und Socket ein (libs/VerbindungKette.php).
  *
  * Grundlage: MENNEKES "ECU-BRx and ECU-BBx Modbus TCP Server Specification",
  * Dok.-Revision 1.07 vom 10.06.2022. Jedes gelesene Register ist am echten
@@ -24,6 +26,9 @@ declare(strict_types=1);
  */
 class MennekesAMTRON extends IPSModule
 {
+    use \SymconMennekesAmtron\VerbindungKette;
+
+    private const VERBINDUNG = ['Port' => 502, 'GatewayMode' => 0, 'LoggerSerial' => false];
     private const MODBUS_TX = '{E310B701-4AE7-458E-B618-EC13A1A6F6A8}';
 
     // Darstellungen von IP-Symcon (/usr/share/symcon/presentations/)
@@ -53,6 +58,7 @@ class MennekesAMTRON extends IPSModule
         $this->RegisterPropertyBoolean('AllowWrite', false);
         $this->RegisterAttributeString('Session', '');
         $this->RegisterTimer('Update', 0, 'AMTRON_Update($_IPS[\'TARGET\']);');
+        $this->registriereVerbindung();
 
         $this->RequireParent('{A5F663AB-C400-4FE5-B207-4D67CC030564}');
     }
@@ -68,7 +74,12 @@ class MennekesAMTRON extends IPSModule
             $this->DisableAction('I_HEMS');
         }
         $this->SetTimerInterval('Update', max(5, $this->ReadPropertyInteger('Interval')) * 1000);
-        $this->SetStatus(102);
+        $this->wendeVerbindungAn();
+    }
+
+    public function GetConfigurationForm()
+    {
+        return $this->formularMitVerbindung(__DIR__ . '/form.json');
     }
 
     public function RequestAction($Ident, $Value)
@@ -131,6 +142,12 @@ class MennekesAMTRON extends IPSModule
         }
         $this->SendDebug('Schreiben', '1000 = ' . $Ampere . ' A', 0);
         return $this->sendModbus(16, 1000, 1, pack('n', $Ampere)) !== null;
+    }
+
+    /** Fuer "Verbindung testen" (libs/VerbindungKette.php). */
+    private function hinweisOhneAntwort(): string
+    {
+        return 'Die Wallbox nimmt nur eine Modbus-Verbindung an. Läuft noch ein anderer Leser (Skript, zweite Instanz, Werkzeug)?';
     }
 
     // ===================== Modbus ueber das Gateway =====================

@@ -172,6 +172,7 @@ class MennekesAMTRON extends IPSModule
     private function sendModbus(int $funktion, int $adresse, int $anzahl, string $daten): ?string
     {
         if (!$this->HasActiveParent()) {
+            $this->weckeSocket();
             return null;
         }
         // Schreibdaten sind rohe Bytes; damit json_encode sie annimmt, werden

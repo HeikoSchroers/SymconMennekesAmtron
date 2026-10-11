@@ -33,7 +33,6 @@ class MennekesAMTRON extends IPSModule
 
     // Darstellungen von IP-Symcon (/usr/share/symcon/presentations/)
     private const P_WERT = '{3319437D-7CDE-699D-750A-3C6A3841FA75}';
-    private const P_AUFZ = '{52D9E126-D7D2-2CBB-5E62-4CF7BA7C5D82}';
     private const P_ZEIT = '{497C4845-27FA-6E4F-AE37-5D951D3BDBF9}';
     private const P_DAUER = '{08A6AF76-394E-D354-48D5-BFC690488E4E}';
 
@@ -401,14 +400,14 @@ class MennekesAMTRON extends IPSModule
 
         // Ladevorgang
         $v('S_ENERGIE', 'Sitzungsenergie (Gerät)', 2, self::pWert(' kWh', 2, 'Battery'));
-        $v('S_DAUER', 'Steckdauer (Gerät)', 1, self::pDauer());
+        $v('S_DAUER', 'Steckdauer (Gerät)', 1, self::pDauer(3));
         $v('LAEDT', 'Lädt gerade', 0, self::pBool('nein', 'ja', 'Lightning'));
-        $v('LZ_AKTUELL', 'Ladezeit laufender Vorgang', 1, self::pDauer());
+        $v('LZ_AKTUELL', 'Ladezeit laufender Vorgang', 1, self::pDauer(3));
         $v('LE_AKTUELL', 'Geladene Energie laufend', 2, self::pWert(' kWh', 2, 'Battery'));
         $v('L_BEGINN', 'Letzter Ladevorgang Beginn', 1, self::pZeit());
         $v('P_MAX', 'Höchste Leistung letzter Vorgang', 2, self::pWert(' W', 1, 'Lightning', 0, 14490));
         $v('LETZT_E', 'Letztes Ladevolumen', 2, self::pWert(' kWh', 2, 'Battery'));
-        $v('LETZT_D', 'Letzte Ladezeit', 1, self::pDauer());
+        $v('LETZT_D', 'Letzte Ladezeit', 1, self::pDauer(3));
         $v('LETZT_ST', 'Letzter Ladevorgang Ende', 1, self::pZeit());
         $v('S_START', 'Ladebeginn', 3, ['ICON' => 'Clock']);
         $v('S_ENDE', 'Ladeende', 3, ['ICON' => 'Clock']);
@@ -480,18 +479,36 @@ class MennekesAMTRON extends IPSModule
                 'ICON' => $icon, 'MIN' => $min, 'MAX' => $max];
     }
 
+    /**
+     * Feste Texte fuer Ganzzahlen. Nicht die Darstellung "Aufzaehlung": Die
+     * verlangt eine Aktion an der Variable, und ohne Aktion zeigt die
+     * Kachel-Visualisierung nur die rohe Zahl. Die Darstellung "Wert" kennt
+     * fuer Ganzzahlen Intervalle mit festem Text.
+     */
     private static function pAufz(array $optionen, string $icon): array
     {
-        $o = [];
+        $iv = [];
         foreach ($optionen as $wert => $text) {
-            $o[] = ['Value' => $wert, 'Caption' => $text, 'IconActive' => false, 'IconValue' => '', 'Color' => -1];
+            $iv[] = ['IntervalMinValue' => $wert, 'IntervalMaxValue' => $wert, 'ConstantActive' => true, 'ConstantValue' => $text,
+                     'ConversionFactor' => 1, 'PrefixActive' => false, 'PrefixValue' => '', 'IconActive' => false, 'IconValue' => '',
+                     'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1,
+                     'SuffixActive' => false, 'SuffixValue' => '', 'DigitsActive' => false, 'DigitsValue' => 0];
         }
-        return ['PRESENTATION' => self::P_AUFZ, 'OPTIONS' => json_encode($o), 'ICON' => $icon, 'LAYOUT' => 0];
+        return ['PRESENTATION' => self::P_WERT, 'ICON' => $icon, 'DIGITS' => 0, 'INTERVALS_ACTIVE' => true, 'INTERVALS' => json_encode($iv)];
     }
 
+    /**
+     * Feste Texte fuer Ja/Nein-Werte, aus demselben Grund wie pAufz. Ohne
+     * Aktion zeigte die Kachel-Visualisierung sonst ein rotes "Aus".
+     */
     private static function pBool(string $aus, string $an, string $icon): array
     {
-        return self::pAufz([0 => $aus, 1 => $an], $icon);
+        $o = [];
+        foreach ([[false, $aus], [true, $an]] as [$wert, $text]) {
+            $o[] = ['Value' => $wert, 'Caption' => $text, 'IconActive' => false, 'IconValue' => '',
+                    'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1];
+        }
+        return ['PRESENTATION' => self::P_WERT, 'ICON' => $icon, 'OPTIONS' => json_encode($o)];
     }
 
     private static function pZeit(string $icon = 'Clock'): array
@@ -499,9 +516,13 @@ class MennekesAMTRON extends IPSModule
         return ['PRESENTATION' => self::P_ZEIT, 'DATE' => 2, 'TIME' => 1, 'MONTH_TEXT' => false, 'ICON' => $icon];
     }
 
-    private static function pDauer(string $icon = 'Clock'): array
+    /**
+     * Format 1 = Minuten und Sekunden, 3 = Stunden und Minuten. Ladezeiten
+     * brauchen Stunden: 9750 s erschienen mit Format 1 als "162:30".
+     */
+    private static function pDauer(int $format = 1, string $icon = 'Clock'): array
     {
-        return ['PRESENTATION' => self::P_DAUER, 'FORMAT' => 1, 'MILLISECONDS' => false, 'ICON' => $icon];
+        return ['PRESENTATION' => self::P_DAUER, 'FORMAT' => $format, 'MILLISECONDS' => false, 'ICON' => $icon];
     }
 
     // ===================== Umrechnungen =====================
